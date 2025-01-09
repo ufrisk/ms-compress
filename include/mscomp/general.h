@@ -34,7 +34,7 @@
 		#ifdef _WIN32
 			#define MSCOMPAPI __declspec(dllexport)
 		#else
-			#define MSCOMPAPI extern // unnecessary but whatever
+			#define MSCOMPAPI __attribute__((visibility("default")))
 		#endif
 	#elif defined(_WIN32)
 		#define MSCOMPAPI __declspec(dllimport)

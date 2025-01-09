@@ -1,5 +1,5 @@
 CC=clang++
-CFLAGS  += -I. -fvisibility=hidden
+CFLAGS  += -I. -fvisibility=hidden -D MSCOMP_API_DLL -D MSCOMP_API_EXPORT
 CFLAGS  += -fPIC -fstack-protector-strong -D_FORTIFY_SOURCE=2 -O1
 CFLAGS  += -Wall
 CFLAGS  += -mmacosx-version-min=11.0
@@ -11,6 +11,7 @@ OBJ = src/lznt1_compress.o src/lznt1_decompress.o src/mscomp.o src/xpress_compre
 
 libMSCompression: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o libMSCompression.dylib $^
+	strip -S -x libMSCompression.dylib
 	rm -f src/*.o || true
 	true
 
