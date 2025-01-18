@@ -4,17 +4,38 @@ CFLAGS  += -fPIC -fstack-protector-strong -D_FORTIFY_SOURCE=2 -O1
 CFLAGS  += -Wall
 CFLAGS  += -mmacosx-version-min=11.0
 LDFLAGS += -dynamiclib -Wl,-rpath,@loader_path -g -mmacosx-version-min=11.0
+
 OBJ = src/lznt1_compress.o src/lznt1_decompress.o src/mscomp.o src/xpress_compress.o src/xpress_decompress.o src/xpress_huff_compress.o src/xpress_huff_decompress.o
 
-%.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+# ARCH SPECIFIC FLAGS:
+CFLAGS_X86_64  = $(CFLAGS) -arch x86_64
+CFLAGS_ARM64   = $(CFLAGS) -arch arm64
+LDFLAGS_X86_64 = $(LDFLAGS) -arch x86_64
+LDFLAGS_ARM64  = $(LDFLAGS) -arch arm64
+OBJ_X86_64 = $(OBJ:.o=.o.x86_64)
+OBJ_ARM64  = $(OBJ:.o=.o.arm64)
 
-libMSCompression: $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o libMSCompression.dylib $^
+all: libmscompression.dylib
+
+%.o.x86_64: %.cpp $(DEPS)
+	$(CC) $(CFLAGS_X86_64) -c -o $@ $<
+
+%.o.arm64: %.cpp $(DEPS)
+	$(CC) $(CFLAGS_ARM64) -c -o $@ $<
+
+libmscompression_x86_64.dylib: $(OBJ_X86_64)
+	$(CC) $(LDFLAGS_X86_64) -o $@ $^
+
+libmscompression_arm64.dylib: $(OBJ_ARM64)
+	$(CC) $(LDFLAGS_ARM64) -o $@ $^
+
+libmscompression.dylib: libmscompression_x86_64.dylib libmscompression_arm64.dylib
+	lipo -create -output libMSCompression.dylib libmscompression_x86_64.dylib libmscompression_arm64.dylib
 	strip -S -x libMSCompression.dylib
-	rm -f src/*.o || true
+	rm -f src/*.o src/*.o.x86_64 src/*.o.arm64 || true
+	rm -r libmscompression_x86_64.dylib libmscompression_arm64.dylib || true
 	true
 
 clean:
-	rm -f src/*.o
-	rm -f *.so
+	rm -f src/*.o src/*.o.x86_64 src/*.o.arm64 || true
+	rm -f *.dylib || true
