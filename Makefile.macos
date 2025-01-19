@@ -32,6 +32,7 @@ libmscompression_arm64.dylib: $(OBJ_ARM64)
 libmscompression.dylib: libmscompression_x86_64.dylib libmscompression_arm64.dylib
 	lipo -create -output libMSCompression.dylib libmscompression_x86_64.dylib libmscompression_arm64.dylib
 	strip -S -x libMSCompression.dylib
+	install_name_tool -id @rpath/libMSCompression.dylib libMSCompression.dylib
 	rm -f src/*.o src/*.o.x86_64 src/*.o.arm64 || true
 	rm -r libmscompression_x86_64.dylib libmscompression_arm64.dylib || true
 	true
